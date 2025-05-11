@@ -115,6 +115,42 @@ namespace CodeSnapshot.Resources.Localization {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Angular.
+        /// </summary>
+        internal static string ProjectTypeAngular {
+            get {
+                return ResourceManager.GetString("ProjectTypeAngular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a .NET.
+        /// </summary>
+        internal static string ProjectTypeDotnet {
+            get {
+                return ResourceManager.GetString("ProjectTypeDotnet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Project Type:.
+        /// </summary>
+        internal static string ProjectTypeLabel {
+            get {
+                return ResourceManager.GetString("ProjectTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Select the type of project.
+        /// </summary>
+        internal static string ProjectTypePicker {
+            get {
+                return ResourceManager.GetString("ProjectTypePicker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a Select Project Folder.
         /// </summary>
         internal static string SelectFolder {

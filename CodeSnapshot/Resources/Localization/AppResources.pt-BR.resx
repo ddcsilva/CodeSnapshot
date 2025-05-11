@@ -135,6 +135,18 @@
   <data name="PathLabel" xml:space="preserve">
     <value>Caminho:</value>
   </data>
+  <data name="ProjectTypeAngular" xml:space="preserve">
+    <value>Angular</value>
+  </data>
+  <data name="ProjectTypeDotnet" xml:space="preserve">
+    <value>.NET</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>Tipo de Projeto:</value>
+  </data>
+  <data name="ProjectTypePicker" xml:space="preserve">
+    <value>Selecione o tipo de projeto</value>
+  </data>
   <data name="SelectFolder" xml:space="preserve">
     <value>Selecionar Pasta do Projeto</value>
   </data>
