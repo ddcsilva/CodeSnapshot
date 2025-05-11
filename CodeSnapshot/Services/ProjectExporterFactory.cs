@@ -6,8 +6,8 @@ public static class ProjectExporterFactory
     {
         return projectType switch
         {
-            ".NET" => new DotnetProjectExporter(),
-            "Angular" => throw new NotImplementedException("Angular export not yet implemented."),
+            "dotnet" => new DotnetProjectExporter(),
+            "angular" => throw new NotImplementedException("Angular export not yet implemented."),
             _ => throw new NotSupportedException($"Unknown project type: {projectType}")
         };
     }
