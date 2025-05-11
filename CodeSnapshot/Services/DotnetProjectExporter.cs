@@ -7,7 +7,7 @@ public class DotnetProjectExporter : IProjectExporter
     private readonly string[] _validExtensions = [".cs", ".cshtml", ".json", ".config"];
     private readonly string[] _ignoredFolders = ["bin", "obj", ".vs", ".git", ".vscode"];
 
-    public async Task<string> ExportAsync(string projectPath, string outputPath, Action<double> reportProgress, Action<string> log)
+    public async Task<string> ExportAsync(string projectPath, string outputPath, Action<double> reportProgress, Action<string> log, CancellationToken cancellationToken)
     {
         string projectName = Path.GetFileName(projectPath);
         string date = DateTime.Now.ToString("dd-MM-yyyy");
@@ -40,6 +40,8 @@ public class DotnetProjectExporter : IProjectExporter
 
         foreach (var file in files)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             count++;
             reportProgress((double)count / total);
             log($"{count * 100 / total}% - {Path.GetFileName(file)}");
@@ -51,7 +53,10 @@ public class DotnetProjectExporter : IProjectExporter
 
             var lines = await File.ReadAllLinesAsync(file);
             foreach (var line in lines)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 await writer.WriteLineAsync(line);
+            }
 
             await writer.WriteLineAsync();
         }

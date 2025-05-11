@@ -13,7 +13,8 @@ public partial class MainPage : ContentPage
 {
     private string _projectPath = string.Empty;
     private string _exportedFilePath = string.Empty;
-    private string _selectedProjectType = "dotnet"; // valor técnico usado internamente
+    private string _selectedProjectType = "dotnet";
+    private CancellationTokenSource _exportCancellation;
 
     public MainPage()
     {
@@ -40,7 +41,6 @@ public partial class MainPage : ContentPage
         };
     }
 
-    // Botão: Selecionar pasta do projeto
     private async void OnSelectFolderClicked(object sender, EventArgs e)
     {
 #if WINDOWS
@@ -56,13 +56,24 @@ public partial class MainPage : ContentPage
         {
             _projectPath = folder.Path;
             SelectedPathLabel.Text = $"{AppResources.PathLabel} {_projectPath}";
+
+            // Add copy path button
+            if (!SelectedPathLabel.GestureRecognizers.Any())
+            {
+                var tapGesture = new TapGestureRecognizer();
+                tapGesture.Tapped += async (s, e) =>
+                {
+                    await Clipboard.SetTextAsync(_projectPath);
+                    await DisplayAlert("Success", "Path copied to clipboard", "OK");
+                };
+                SelectedPathLabel.GestureRecognizers.Add(tapGesture);
+            }
         }
 #else
         await DisplayAlert("Not supported", "Folder picking is only supported on Windows.", "OK");
 #endif
     }
 
-    // Botão: Gerar snapshot
     private async void OnGenerateSnapshotClicked(object sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_projectPath))
@@ -71,9 +82,19 @@ public partial class MainPage : ContentPage
             return;
         }
 
+        var confirm = await DisplayAlert("Confirm Export",
+            "Are you sure you want to generate a snapshot of this project?",
+            "Yes", "No");
+
+        if (!confirm) return;
+
         ExportProgressBar.Progress = 0;
         ExportProgressBar.IsVisible = true;
         LogEditor.Text = $"{AppResources.ExportStarted}\n";
+        SaveLogButton.IsVisible = false;
+        OpenFileButton.IsVisible = false;
+
+        _exportCancellation = new CancellationTokenSource();
 
         try
         {
@@ -83,39 +104,65 @@ public partial class MainPage : ContentPage
                 _projectPath,
                 FileSystem.AppDataDirectory,
                 progress => MainThread.BeginInvokeOnMainThread(() => ExportProgressBar.Progress = progress),
-                message => MainThread.BeginInvokeOnMainThread(() => LogEditor.Text += message + "\n")
+                message => MainThread.BeginInvokeOnMainThread(() => LogEditor.Text += message + "\n"),
+                _exportCancellation.Token
             );
+
+            if (!_exportCancellation.Token.IsCancellationRequested)
+            {
+                await DisplayAlert("Success", "Snapshot generated successfully!", "OK");
+                SaveLogButton.IsVisible = true;
+                OpenFileButton.IsVisible = true;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            LogEditor.Text += "Export cancelled by user.\n";
         }
         catch (Exception ex)
         {
             LogEditor.Text += $"Error: {ex.Message}\n";
+            await DisplayAlert("Error", $"Failed to generate snapshot: {ex.Message}", "OK");
         }
-
-        ExportProgressBar.IsVisible = false;
-        LogEditor.Text += $"{AppResources.ExportFinished}\n";
-
-        OpenFileButton.IsVisible = !string.IsNullOrEmpty(_exportedFilePath);
+        finally
+        {
+            ExportProgressBar.IsVisible = false;
+        }
     }
 
-    // Botão: Abrir o arquivo exportado
-    private void OnOpenFileClicked(object sender, EventArgs e)
+    private async void OnSaveLogClicked(object sender, EventArgs e)
     {
         try
         {
-            if (File.Exists(_exportedFilePath))
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = _exportedFilePath,
-                    UseShellExecute = true
-                };
-                Process.Start(psi);
-            }
+            var filePath = Path.Combine(FileSystem.AppDataDirectory, "export-log.txt");
+            await File.WriteAllTextAsync(filePath, LogEditor.Text);
+            await DisplayAlert("Success", "Log saved successfully!", "OK");
         }
         catch (Exception ex)
         {
-            LogEditor.Text += $"Error opening file: {ex.Message}\n";
+            await DisplayAlert("Error", $"Failed to save log: {ex.Message}", "OK");
         }
+    }
+
+    private async void OnOpenFileClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            await Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(_exportedFilePath)
+            });
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to open file: {ex.Message}", "OK");
+        }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _exportCancellation?.Cancel();
     }
 }
 

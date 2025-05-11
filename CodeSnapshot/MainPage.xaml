@@ -1,63 +1,154 @@
-﻿<ContentPage
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:resx="clr-namespace:CodeSnapshot.Resources.Localization"
     x:Class="CodeSnapshot.MainPage"
     Title="{x:Static resx:AppResources.AppTitle}">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
+    <ScrollView>
+        <VerticalStackLayout Padding="20"
+                             Spacing="20">
+            <!-- Header Section -->
+            <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                   Padding="15"
+                   CornerRadius="10"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label
+                        Text="{x:Static resx:AppResources.AppTitle}"
+                        FontSize="32"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"/>
 
-        <Label 
-            Text="{x:Static resx:AppResources.AppTitle}" 
-            FontSize="28" 
-            HorizontalOptions="Center" />
+                    <Label
+                        Text="Generate code snapshots for your projects"
+                        FontSize="16"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
 
-        <Label 
-            Text="{x:Static resx:AppResources.ProjectTypeLabel}" 
-            FontAttributes="Bold" />
+            <!-- Project Configuration Section -->
+            <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                   Padding="15"
+                   CornerRadius="10"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <Label
+                        Text="Project Configuration"
+                        FontSize="20"
+                        FontAttributes="Bold"/>
 
-        <Picker 
-            x:Name="ProjectTypePicker"
-            Title="{x:Static resx:AppResources.ProjectTypePicker}">
-            <Picker.ItemsSource>
-                <x:Array Type="{x:Type x:String}">
-                    <x:String>{x:Static resx:AppResources.ProjectTypeDotnet}</x:String>
-                    <x:String>{x:Static resx:AppResources.ProjectTypeAngular}</x:String>
-                </x:Array>
-            </Picker.ItemsSource>
-        </Picker>
+                    <Label
+                        Text="{x:Static resx:AppResources.ProjectTypeLabel}"
+                        FontAttributes="Bold"/>
 
+                    <Picker
+                        x:Name="ProjectTypePicker"
+                        Title="{x:Static resx:AppResources.ProjectTypePicker}"/>
 
+                    <Label
+                        Text="Select the type of project you want to export"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        Margin="0,-10,0,0"/>
 
-        <Button 
-            Text="{x:Static resx:AppResources.SelectFolder}" 
-            Clicked="OnSelectFolderClicked" />
+                    <Button
+                        Text="{x:Static resx:AppResources.SelectFolder}"
+                        Clicked="OnSelectFolderClicked"
+                        ImageSource="folder.png"
+                        HorizontalOptions="Fill"/>
 
-        <Label 
-            x:Name="SelectedPathLabel" 
-            Text="{x:Static resx:AppResources.PathLabel}" 
-            FontAttributes="Italic" />
+                    <Label
+                        Text="Choose the project folder to export"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        Margin="0,-10,0,0"/>
 
-        <Button 
-            Text="{x:Static resx:AppResources.GenerateSnapshot}" 
-            Clicked="OnGenerateSnapshotClicked" />
+                    <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                           Padding="10"
+                           CornerRadius="5">
+                        <VerticalStackLayout>
+                            <Label
+                                x:Name="SelectedPathLabel"
+                                Text="{x:Static resx:AppResources.PathLabel}"
+                                FontAttributes="Italic"/>
+                            <Label
+                                Text="Tap to copy path to clipboard"
+                                FontSize="12"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                Margin="0,5,0,0"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+            </Frame>
 
-        <ProgressBar 
-            x:Name="ExportProgressBar" 
-            Progress="0" 
-            IsVisible="False" />
+            <!-- Export Section -->
+            <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                   Padding="15"
+                   CornerRadius="10"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <Label
+                        Text="Export"
+                        FontSize="20"
+                        FontAttributes="Bold"/>
 
-        <Editor 
-            x:Name="LogEditor" 
-            HeightRequest="250" 
-            AutoSize="TextChanges" 
-            IsReadOnly="True" />
+                    <Button
+                        Text="{x:Static resx:AppResources.GenerateSnapshot}"
+                        Clicked="OnGenerateSnapshotClicked"
+                        ImageSource="export.png"
+                        HorizontalOptions="Fill"/>
 
-        <Button 
-            x:Name="OpenFileButton" 
-            Text="{x:Static resx:AppResources.OpenFile}" 
-            Clicked="OnOpenFileClicked" 
-            IsVisible="False" />
-    </VerticalStackLayout>
+                    <Label
+                        Text="Generate a snapshot of your project"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        Margin="0,-10,0,0"/>
+
+                    <ProgressBar
+                        x:Name="ExportProgressBar"
+                        Progress="0"
+                        IsVisible="False"/>
+
+                    <Editor
+                        x:Name="LogEditor"
+                        HeightRequest="200"
+                        AutoSize="TextChanges"
+                        IsReadOnly="True"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
+
+                    <Label
+                        Text="Export progress and results will be shown here"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        Margin="0,-10,0,0"/>
+
+                    <HorizontalStackLayout Spacing="10"
+                                           HorizontalOptions="End">
+                        <Button
+                            x:Name="SaveLogButton"
+                            Text="Save Log"
+                            Clicked="OnSaveLogClicked"
+                            ImageSource="save.png"
+                            IsVisible="False"/>
+
+                        <Button
+                            x:Name="OpenFileButton"
+                            Text="{x:Static resx:AppResources.OpenFile}"
+                            Clicked="OnOpenFileClicked"
+                            ImageSource="file.png"
+                            IsVisible="False"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
