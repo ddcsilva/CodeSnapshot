@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using CodeSnapshot.Resources.Localization;
+using CodeSnapshot.Services;
 
 namespace CodeSnapshot;
 
@@ -54,7 +55,21 @@ public partial class MainPage : ContentPage
         ExportProgressBar.IsVisible = true;
         LogEditor.Text = $"{AppResources.ExportStarted}\n";
 
-        // Em breve: aqui entra a chamada do exportador real
+        try
+        {
+            var exporter = ProjectExporterFactory.GetExporter(_selectedProjectType);
+
+            _exportedFilePath = await exporter.ExportAsync(
+                _projectPath,
+                FileSystem.AppDataDirectory,
+                progress => MainThread.BeginInvokeOnMainThread(() => ExportProgressBar.Progress = progress),
+                message => MainThread.BeginInvokeOnMainThread(() => LogEditor.Text += message + "\n")
+            );
+        }
+        catch (Exception ex)
+        {
+            LogEditor.Text += $"Error: {ex.Message}\n";
+        }
 
         ExportProgressBar.IsVisible = false;
         LogEditor.Text += $"{AppResources.ExportFinished}\n";
