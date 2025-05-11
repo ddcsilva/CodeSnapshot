@@ -12,6 +12,7 @@ namespace CodeSnapshot;
 public partial class MainPage : ContentPage
 {
     private string _projectPath = string.Empty;
+    private string _exportPath = string.Empty;
     private string _exportedFilePath = string.Empty;
     private string _selectedProjectType = "dotnet";
     private CancellationTokenSource _exportCancellation;
@@ -39,6 +40,22 @@ public partial class MainPage : ContentPage
                 _selectedProjectType = selected.Key;
             }
         };
+
+        // Inicializa com a pasta de dados do app como padrão
+        _exportPath = FileSystem.AppDataDirectory;
+        ExportPathLabel.Text = $"Export Path: {_exportPath}";
+
+        // Adiciona gesto de toque para copiar o caminho
+        if (!ExportPathLabel.GestureRecognizers.Any())
+        {
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
+            {
+                await Clipboard.SetTextAsync(_exportPath);
+                await DisplayAlert("Success", "Export path copied to clipboard", "OK");
+            };
+            ExportPathLabel.GestureRecognizers.Add(tapGesture);
+        }
     }
 
     private async void OnSelectFolderClicked(object sender, EventArgs e)
@@ -74,6 +91,27 @@ public partial class MainPage : ContentPage
 #endif
     }
 
+    private async void OnSelectExportFolderClicked(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var hwnd = ((MauiWinUIWindow)App.Current.Windows[0].Handler.PlatformView).WindowHandle;
+
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        InitializeWithWindow.Initialize(picker, hwnd);
+
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            _exportPath = folder.Path;
+            ExportPathLabel.Text = $"Export Path: {_exportPath}";
+        }
+#else
+        await DisplayAlert("Not supported", "Folder picking is only supported on Windows.", "OK");
+#endif
+    }
+
     private async void OnGenerateSnapshotClicked(object sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_projectPath))
@@ -102,7 +140,7 @@ public partial class MainPage : ContentPage
 
             _exportedFilePath = await exporter.ExportAsync(
                 _projectPath,
-                FileSystem.AppDataDirectory,
+                _exportPath,
                 progress => MainThread.BeginInvokeOnMainThread(() => ExportProgressBar.Progress = progress),
                 message => MainThread.BeginInvokeOnMainThread(() => LogEditor.Text += message + "\n"),
                 _exportCancellation.Token
@@ -134,7 +172,7 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var filePath = Path.Combine(FileSystem.AppDataDirectory, "export-log.txt");
+            var filePath = Path.Combine(_exportPath, "export-log.txt");
             await File.WriteAllTextAsync(filePath, LogEditor.Text);
             await DisplayAlert("Success", "Log saved successfully!", "OK");
         }

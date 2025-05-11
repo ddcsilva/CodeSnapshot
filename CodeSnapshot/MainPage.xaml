@@ -100,6 +100,35 @@
                         FontAttributes="Bold"/>
 
                     <Button
+                        Text="Select Export Folder"
+                        Clicked="OnSelectExportFolderClicked"
+                        ImageSource="folder.png"
+                        HorizontalOptions="Fill"/>
+
+                    <Label
+                        Text="Choose where to save the exported files"
+                        FontSize="12"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                        Margin="0,-10,0,0"/>
+
+                    <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                           Padding="10"
+                           CornerRadius="5">
+                        <VerticalStackLayout>
+                            <Label
+                                x:Name="ExportPathLabel"
+                                Text="Export Path: Not selected"
+                                FontAttributes="Italic"/>
+                            <Label
+                                Text="Tap to copy path to clipboard"
+                                FontSize="12"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                Margin="0,5,0,0"/>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <Button
                         Text="{x:Static resx:AppResources.GenerateSnapshot}"
                         Clicked="OnGenerateSnapshotClicked"
                         ImageSource="export.png"
