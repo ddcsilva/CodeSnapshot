@@ -1,6 +1,11 @@
 ﻿using System.Diagnostics;
 using CodeSnapshot.Resources.Localization;
 using CodeSnapshot.Services;
+#if WINDOWS
+using Windows.Storage.Pickers;
+using Microsoft.UI.Xaml;
+using WinRT.Interop;
+#endif
 
 namespace CodeSnapshot;
 
@@ -8,41 +13,56 @@ public partial class MainPage : ContentPage
 {
     private string _projectPath = string.Empty;
     private string _exportedFilePath = string.Empty;
-    private string _selectedProjectType = ".NET";
+    private string _selectedProjectType = "dotnet"; // valor técnico usado internamente
 
     public MainPage()
     {
         InitializeComponent();
 
+        // Lista de tipos de projeto (nome exibido + chave interna)
+        var projectTypes = new List<ProjectTypeOption>
+        {
+            new() { Name = AppResources.ProjectTypeDotnet, Key = "dotnet" },
+            new() { Name = AppResources.ProjectTypeAngular, Key = "angular" }
+        };
+
+        ProjectTypePicker.ItemsSource = projectTypes;
+        ProjectTypePicker.ItemDisplayBinding = new Binding("Name");
+        ProjectTypePicker.SelectedIndex = 0;
+
         ProjectTypePicker.SelectedIndexChanged += (s, e) =>
         {
             if (ProjectTypePicker.SelectedIndex >= 0)
             {
-                _selectedProjectType = ProjectTypePicker.SelectedItem?.ToString() ?? ".NET";
+                var selected = (ProjectTypeOption)ProjectTypePicker.SelectedItem;
+                _selectedProjectType = selected.Key;
             }
         };
-
     }
 
     // Botão: Selecionar pasta do projeto
     private async void OnSelectFolderClicked(object sender, EventArgs e)
     {
-        var result = await FilePicker.Default.PickAsync(new PickOptions
-        {
-            PickerTitle = AppResources.SelectFolder
-        });
+#if WINDOWS
+        var hwnd = ((MauiWinUIWindow)App.Current.Windows[0].Handler.PlatformView).WindowHandle;
 
-        if (result != null)
-        {
-            // Pega a pasta onde o arquivo foi selecionado
-            _projectPath = Path.GetDirectoryName(result.FullPath) ?? string.Empty;
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        InitializeWithWindow.Initialize(picker, hwnd);
 
-            // Atualiza o label com o caminho
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            _projectPath = folder.Path;
             SelectedPathLabel.Text = $"{AppResources.PathLabel} {_projectPath}";
         }
+#else
+        await DisplayAlert("Not supported", "Folder picking is only supported on Windows.", "OK");
+#endif
     }
 
-    // Botão: Gerar snapshot (chamará o serviço real em breve)
+    // Botão: Gerar snapshot
     private async void OnGenerateSnapshotClicked(object sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_projectPath))
@@ -74,11 +94,10 @@ public partial class MainPage : ContentPage
         ExportProgressBar.IsVisible = false;
         LogEditor.Text += $"{AppResources.ExportFinished}\n";
 
-        // Mostra o botão "Abrir Arquivo" se tivermos o caminho do exportado
         OpenFileButton.IsVisible = !string.IsNullOrEmpty(_exportedFilePath);
     }
 
-    // Botão: Abrir o arquivo exportado no programa padrão
+    // Botão: Abrir o arquivo exportado
     private void OnOpenFileClicked(object sender, EventArgs e)
     {
         try
@@ -98,4 +117,10 @@ public partial class MainPage : ContentPage
             LogEditor.Text += $"Error opening file: {ex.Message}\n";
         }
     }
+}
+
+public class ProjectTypeOption
+{
+    public string Name { get; set; } = string.Empty;
+    public string Key { get; set; } = string.Empty;
 }

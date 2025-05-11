@@ -31,7 +31,9 @@ public class DotnetProjectExporter : IProjectExporter
         await writer.WriteLineAsync($"Files: {files.Count}");
         await writer.WriteLineAsync();
 
+        writer.WriteLine("\n## Folder Structure (Tree Mode)\n");
         WriteTreeStructure(writer, projectPath, 0);
+        writer.WriteLine();
 
         int total = files.Count;
         int count = 0;
@@ -59,15 +61,16 @@ public class DotnetProjectExporter : IProjectExporter
 
     private void WriteTreeStructure(StreamWriter writer, string directory, int level)
     {
-        foreach (var dir in Directory.GetDirectories(directory))
+        string folderName = Path.GetFileName(directory);
+        string prefix = string.Concat(Enumerable.Repeat("|   ", level));
+        writer.WriteLine($"{prefix}{folderName}");
+
+        foreach (var subDir in Directory.GetDirectories(directory))
         {
-            var folderName = Path.GetFileName(dir);
-            if (_ignoredFolders.Contains(folderName)) continue;
+            var name = Path.GetFileName(subDir);
+            if (_ignoredFolders.Contains(name)) continue;
 
-            string prefix = new string(' ', level * 4);
-            writer.WriteLine($"{prefix}{folderName}");
-
-            WriteTreeStructure(writer, dir, level + 1);
+            WriteTreeStructure(writer, subDir, level + 1);
         }
     }
 }
